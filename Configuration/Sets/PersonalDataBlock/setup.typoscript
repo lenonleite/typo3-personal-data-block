@@ -1,0 +1,5 @@
+tt_content.personal_data_block =< lib.contentElement
+tt_content.personal_data_block {
+    templateName = PersonalDataBlock
+    templateRootPaths.20 = EXT:personal_data_block/Resources/Private/Templates/
+}

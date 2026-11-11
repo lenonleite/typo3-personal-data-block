@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<ruleset name="Personal data block">
+    <description>PSR-12 checks for the extension.</description>
+    <file>Tests</file>
+    <file>Configuration</file>
+    <arg name="extensions" value="php"/>
+    <arg value="sp"/>
+    <rule ref="PSR12"/>
+</ruleset>

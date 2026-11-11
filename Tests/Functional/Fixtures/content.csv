@@ -1,0 +1,13 @@
+"pages"
+,"uid","pid","title","slug","is_siteroot"
+,1,0,"Home","/",1
+,2,1,"Other","/other",0
+"be_users"
+,"uid","pid","username","admin","disable"
+,1,0,"admin",1,0
+"tt_content"
+,"uid","pid","CType","colPos","hidden","tx_personaldatablock_name","tx_personaldatablock_surname","tx_personaldatablock_email"
+,1,1,"personal_data_block",0,0,"Ada","Lovelace","ada@example.test"
+,2,1,"personal_data_block",1,0,"Grace","Hopper","grace@example.test"
+,3,1,"personal_data_block",0,1,"Hidden","Person","hidden@example.test"
+,4,2,"personal_data_block",0,0,"Other","Person","other@example.test"

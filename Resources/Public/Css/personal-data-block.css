@@ -1,0 +1,11 @@
+.personal-data-block {
+    padding: 1.25rem;
+    border-inline-start: 0.25rem solid #245b87;
+    background: #f2f6fa;
+    color: #182b3a;
+    overflow-wrap: anywhere;
+}
+.personal-data-block p { margin: 0; }
+.personal-data-block p + p { margin-block-start: 0.5rem; }
+.personal-data-block__name { font-weight: 700; }
+.personal-data-block a { color: #174c76; }

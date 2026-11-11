@@ -1,0 +1,4 @@
+name: study/personal-data-block
+label: 'Study: Personal data block'
+dependencies:
+  - typo3/fluid-styled-content

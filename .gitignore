@@ -1,0 +1,7 @@
+/vendor/
+/var/
+/public/
+/config/
+/composer.lock
+/.idea/
+.DS_Store
