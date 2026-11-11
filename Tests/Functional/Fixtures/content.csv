@@ -3,11 +3,15 @@
 ,1,0,"Home","/",1
 ,2,1,"Other","/other",0
 "be_users"
-,"uid","pid","username","admin","disable"
-,1,0,"admin",1,0
+,"uid","pid","username","admin","disable","realName","email"
+,1,0,"admin",1,0,"Backend Editor","editor@example.test"
+"fe_users"
+,"uid","pid","username","first_name","last_name","email"
+,1,1,"ada","Ada","Lovelace","ada@example.test"
+,2,1,"grace","Grace","Hopper","grace@example.test"
 "tt_content"
-,"uid","pid","CType","colPos","hidden","tx_personaldatablock_name","tx_personaldatablock_surname","tx_personaldatablock_email"
-,1,1,"personal_data_block",0,0,"Ada","Lovelace","ada@example.test"
-,2,1,"personal_data_block",1,0,"Grace","Hopper","grace@example.test"
-,3,1,"personal_data_block",0,1,"Hidden","Person","hidden@example.test"
-,4,2,"personal_data_block",0,0,"Other","Person","other@example.test"
+,"uid","pid","CType","colPos","hidden"
+,1,1,"personal_data_block",0,0
+,2,1,"personal_data_block",1,0
+,3,1,"personal_data_block",0,1
+,4,2,"personal_data_block",0,0

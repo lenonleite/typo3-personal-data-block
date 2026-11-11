@@ -1,5 +1,9 @@
-tt_content.personal_data_block =< lib.contentElement
+# Resolve the current user on every request, outside the shared page cache.
+tt_content.personal_data_block = COA_INT
 tt_content.personal_data_block {
-    templateName = PersonalDataBlock
-    templateRootPaths.20 = EXT:personal_data_block/Resources/Private/Templates/
+    10 = FLUIDTEMPLATE
+    10 {
+        file = EXT:personal_data_block/Resources/Private/Templates/PersonalDataBlock.fluid.html
+        dataProcessing.10 = personal-data-current-user
+    }
 }

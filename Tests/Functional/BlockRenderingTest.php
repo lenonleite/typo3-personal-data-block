@@ -7,15 +7,20 @@ namespace Study\PersonalDataBlock\Tests\Functional;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Yaml\Yaml;
 use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 final class BlockRenderingTest extends FunctionalTestCase
 {
     protected array $coreExtensionsToLoad = ['fluid_styled_content'];
     protected array $testExtensionsToLoad = ['study/personal-data-block'];
+    protected array $configurationToUseInTestInstance = [
+        'SYS' => ['caching' => ['cacheConfigurations' => ['pages' => [
+            'backend' => \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend::class,
+        ]]]],
+    ];
 
     protected function setUp(): void
     {
@@ -37,66 +42,75 @@ final class BlockRenderingTest extends FunctionalTestCase
     }
 
     #[Test]
-    public function rendersNameSurnameAndEmailLink(): void
+    public function anonymousVisitorsSeeNoBlock(): void
     {
-        $xpath = $this->renderPage();
-        self::assertSame('Ada Lovelace', trim($this->textAt($xpath, '//main//p[@class="personal-data-block__name"]')));
-        self::assertSame('ada@example.test', $this->textAt($xpath, '//main//a[@href="mailto:ada@example.test"]'));
+        self::assertSame(0.0, $this->renderPage()->evaluate('count(//div[@class="personal-data-block"])'));
     }
 
     #[Test]
-    public function keepsColumnsSeparateAndExcludesHiddenAndOtherPageRecords(): void
+    public function frontendUserSeesTheirDatabaseProfile(): void
     {
-        $xpath = $this->renderPage();
-        self::assertStringNotContainsString('Grace', $this->textAt($xpath, '//main'));
-        self::assertStringContainsString('Grace Hopper', $this->textAt($xpath, '//aside'));
-        self::assertStringNotContainsString('Ada', $this->textAt($xpath, '//aside'));
-        $body = $this->textAt($xpath, '//body');
-        self::assertStringNotContainsString('Hidden', $body);
-        self::assertStringNotContainsString('Other', $body);
+        $xpath = $this->renderPage((new InternalRequestContext())->withFrontendUserId(1));
+        self::assertSame('Ada Lovelace', trim($this->textAt($xpath, '//main//p[@class="personal-data-block__name"]')));
+        self::assertSame('ada@example.test', $this->textAt($xpath, '//main//a[@href="mailto:ada@example.test"]'));
+        self::assertSame(1.0, $xpath->evaluate('count(//main//div[@class="personal-data-block"])'));
+        self::assertSame(1.0, $xpath->evaluate('count(//aside//div[@class="personal-data-block"])'));
+    }
+
+    #[Test]
+    public function backendUserSeesTheirRealNameAndEmail(): void
+    {
+        $xpath = $this->renderPage((new InternalRequestContext())->withBackendUserId(1));
+        self::assertSame(
+            'Backend Editor',
+            trim($this->textAt($xpath, '(//main//p[@class="personal-data-block__name"])[1]')),
+        );
+        self::assertSame(
+            'editor@example.test',
+            $this->textAt($xpath, '(//main//a[@href="mailto:editor@example.test"])[1]'),
+        );
+    }
+
+    #[Test]
+    public function frontendUserTakesPriorityWhenBothAreLoggedIn(): void
+    {
+        $xpath = $this->renderPage((new InternalRequestContext())->withFrontendUserId(1)->withBackendUserId(1));
+        self::assertStringContainsString('Ada Lovelace', $this->textAt($xpath, '//body'));
+        self::assertStringNotContainsString('Backend Editor', $this->textAt($xpath, '//body'));
+    }
+
+    #[Test]
+    public function cachedPageDoesNotSharePersonalDetailsBetweenVisitors(): void
+    {
+        $this->renderPage();
+        self::assertGreaterThan(0, $this->getConnectionPool()->getConnectionForTable('cache_pages')->count(
+            '*',
+            'cache_pages',
+            [],
+        ));
+        $ada = $this->renderPage((new InternalRequestContext())->withFrontendUserId(1));
+        self::assertStringContainsString('Ada Lovelace', $this->textAt($ada, '//body'));
+        $grace = $this->renderPage((new InternalRequestContext())->withFrontendUserId(2));
+        self::assertStringContainsString('Grace Hopper', $this->textAt($grace, '//body'));
+        self::assertStringNotContainsString('Ada', $this->textAt($grace, '//body'));
+        self::assertStringNotContainsString('ada@example.test', $this->textAt($grace, '//body'));
+        self::assertSame(0.0, $this->renderPage()->evaluate('count(//div[@class="personal-data-block"])'));
     }
 
     #[Test]
     public function escapesNamesInsteadOfRenderingMarkup(): void
     {
-        $this->getConnectionPool()->getConnectionForTable('tt_content')->update('tt_content', [
-            'tx_personaldatablock_name' => '<script>alert(1)</script>',
+        $this->getConnectionPool()->getConnectionForTable('fe_users')->update('fe_users', [
+            'first_name' => '<script>alert(1)</script>',
         ], ['uid' => 1]);
-        $xpath = $this->renderPage();
+        $xpath = $this->renderPage((new InternalRequestContext())->withFrontendUserId(1));
         self::assertStringContainsString('<script>alert(1)</script>', $this->textAt($xpath, '//main'));
         self::assertSame(0.0, $xpath->evaluate('count(//main//script)'));
     }
 
-    #[Test]
-    public function backendDataHandlerSavesTheThreeFields(): void
+    private function renderPage(?InternalRequestContext $context = null): \DOMXPath
     {
-        $this->setUpBackendUser(1);
-        $handler = GeneralUtility::makeInstance(DataHandler::class);
-        $handler->start(['tt_content' => ['NEWperson' => [
-            'pid' => 1,
-            'CType' => 'personal_data_block',
-            'tx_personaldatablock_name' => ' Alan ',
-            'tx_personaldatablock_surname' => 'Turing',
-            'tx_personaldatablock_email' => 'alan@example.test',
-        ]]], []);
-        $handler->process_datamap();
-        self::assertSame([], $handler->errorLog);
-        $uid = $handler->substNEWwithIDs['NEWperson'];
-        $record = $this->getConnectionPool()->getConnectionForTable('tt_content')->select(
-            ['tx_personaldatablock_name', 'tx_personaldatablock_surname', 'tx_personaldatablock_email'],
-            'tt_content',
-            ['uid' => $uid],
-        )->fetchAssociative();
-        self::assertSame([
-            'tx_personaldatablock_name' => 'Alan',
-            'tx_personaldatablock_surname' => 'Turing',
-            'tx_personaldatablock_email' => 'alan@example.test',
-        ], $record);
-    }
-
-    private function renderPage(string $path = '/'): \DOMXPath
-    {
-        $response = $this->executeFrontendSubRequest(new InternalRequest('https://study.example.test' . $path));
+        $response = $this->executeFrontendSubRequest(new InternalRequest('https://study.example.test/'), $context);
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('text/html', $response->getHeaderLine('Content-Type'));
         $html = (string)$response->getBody();

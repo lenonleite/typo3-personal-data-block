@@ -3,6 +3,7 @@
     <description>PSR-12 checks for the extension.</description>
     <file>Tests</file>
     <file>Configuration</file>
+    <file>Classes</file>
     <arg name="extensions" value="php"/>
     <arg value="sp"/>
     <rule ref="PSR12"/>

@@ -1,6 +1,6 @@
 {
     "name": "study/personal-data-block",
-    "description": "An editable name, surname and email content element for TYPO3",
+    "description": "Displays the authenticated frontend or backend user profile",
     "type": "typo3-cms-extension",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -50,6 +50,11 @@
     "autoload-dev": {
         "psr-4": {
             "Study\\PersonalDataBlock\\Tests\\": "Tests/"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Study\\PersonalDataBlock\\": "Classes/"
         }
     }
 }

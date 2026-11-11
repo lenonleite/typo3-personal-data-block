@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+  Study\PersonalDataBlock\:
+    resource: '../Classes/*'
+  Study\PersonalDataBlock\DataProcessing\CurrentUserProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'personal-data-current-user' }

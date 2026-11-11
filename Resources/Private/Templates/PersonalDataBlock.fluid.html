@@ -1,10 +1,11 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
-<f:layout name="Default" />
-<f:section name="Main">
+<f:if condition="{person}">
     <f:asset.css identifier="personal-data-block" href="EXT:personal_data_block/Resources/Public/Css/personal-data-block.css" />
     <div class="personal-data-block">
-        <p class="personal-data-block__name">{record.tx_personaldatablock_name} {record.tx_personaldatablock_surname}</p>
-        <p><f:link.email email="{record.tx_personaldatablock_email}">{record.tx_personaldatablock_email}</f:link.email></p>
+        <p class="personal-data-block__name">{person.name}</p>
+        <f:if condition="{person.email}">
+            <p><f:link.email email="{person.email}">{person.email}</f:link.email></p>
+        </f:if>
     </div>
-</f:section>
+</f:if>
 </html>

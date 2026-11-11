@@ -7,4 +7,5 @@ parameters:
     paths:
         - Tests
         - Configuration
+        - Classes
     tmpDir: var/phpstan
